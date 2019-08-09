@@ -71,11 +71,10 @@ def create_connection(db_file):
     """Create a database connection to SQLite db"""
     try:
         conn = sqlite3.connect(db_file)
-        print(sqlite3.version)
+        return conn
     except Error as e:
         print(e)
-    finally:
-        conn.close()
+    return None
 
 def create_table(conn,create_table_sql):
     try:
@@ -83,7 +82,32 @@ def create_table(conn,create_table_sql):
         c.execute(create_table_sql)
     except Error as e:
         print(e)
+
+def Database_setup(db_file):
+    conn = create_connection(db_file)
+    
+    slq_create_test_table = """CREATE TABLE IF NOT EXISTS tasks (
+                                    id integer PRIMARY KEY,
+                                    name text NOT NULL,
+                                    priority integer,
+                                    status_id integer NOT NULL,
+                                    project_id integer NOT NULL,
+                                    begin_date text NOT NULL,
+                                    end_date text NOT NULL,
+                                    FOREIGN KEY (project_id) REFERENCES projects (id)
+                                );"""
+    
+    if(conn != None):
+        create_table(conn,slq_create_test_table)
+    else:
+        print("Error! cannot create the database connection.")
+        
+        
+    conn.close()
+
+    
 #%%Main
 if __name__ == '__main__':
-    create_connection("C://sqlite/db/chatbot_v2.db")
-    app.run()
+    
+    Database_setup("C://sqlite/db/chatbot_v2.db")
+#    app.run()
