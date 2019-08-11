@@ -10,7 +10,7 @@ import numpy as np
 import random
 from flask import Flask,request
 from pymessenger.bot import Bot
-
+import re
 import os
 import sys
 app = Flask(__name__)
@@ -22,6 +22,9 @@ import Keys
 ACCESS_TOKEN = Keys.ACCESS_TOKEN
 VERIFY_TOKEN = Keys.VERIFY_TOKEN
 bot = Bot(ACCESS_TOKEN)
+
+
+
 #%% Webhook
 @app.route('/',methods=['GET','POST'])
 def receive_message():
@@ -59,10 +62,98 @@ def send_message(recipient_id, response):
     return "success"
 
 def get_message(user_input):
-    sample_responses = ["You are stunning!", "We're proud of you.", "Keep on being you!", "We're greatful to know you :)"]
+    inputtype = Classification(user_input)
+    
+#    sample_responses = ["You are stunning!", "We're proud of you.", "Keep on being you!", "We're greatful to know you :)"]
+    out = get_response(user_input)
     # return selected item to the user
 #    return random.choice(sample_responses)
-    return user_input
+    return out
+
+
+#%%Pairs
+pairs = [
+    [
+        r"my name is (.*)",
+        ["Hello {}, How are you today {} ?",]
+    ],
+     [
+        r"what is your name ?",
+        ["My name is Chatty and I'm a chatbot ?",]
+    ],
+    [
+        r"how are you ?",
+        ["I'm doing good\nHow about You ?",]
+    ],
+    [
+        r"sorry (.*)",
+        ["Its alright","Its OK, never mind",]
+    ],
+    [
+        r"i'm (.*) doing good",
+        ["Nice to hear that","Alright :)",]
+    ],
+    [
+        r"(.*) age?",
+        ["I'm a computer program dude\nSeriously you are asking me this?",]
+        
+    ],
+    [
+        r"what (.*) want ?",
+        ["Make me an offer I can't refuse",]
+        
+    ],
+    [
+        r"(.*) (location|city) ?",
+        ['Copenhagen',]
+    ],
+    [
+        r"how (.*) health(.*)",
+        ["I'm a computer program, so I'm always healthy ",]
+    ],
+    [
+        r"(.*) (sports|game) ?",
+        ["I'm a very big fan of Football",]
+    ],
+    [
+        r"who (.*) sportsperson ?",
+        ["Messy","Ronaldo","Roony"]
+],
+    [
+        r"who (.*) (moviestar|actor)?",
+        ["Tim Honks"]
+],
+    [
+        r"quit",
+        ["BBye take care. See you soon :) ","It was nice talking to you. See you soon :)"]
+],
+        [
+        r"hi|hey|hello|sup|what's up|",
+        ["Hello", "Hey there",]
+    ],
+]
+
+#%%Input Classification
+def Classification(text):
+    """
+    S = Salute
+    C = Chat
+    B = Bye
+    S = Statement
+    Q = Question
+    """
+    
+def get_response(text):
+    for pair in pairs:
+        if(re.search(pair[0],text)):
+            if(pair==pairs[0]):                
+                return random.choice(pair[1]).format("Your_name")
+            return random.choice(pair[1])
+    
+    return "Sorry I don't understand :("
+    
+    
+
 
 #%%Database
 import sqlite3
@@ -109,5 +200,5 @@ def Database_setup(db_file):
 #%%Main
 if __name__ == '__main__':
     
-    Database_setup("C://sqlite/db/chatbot_v2.db")
-#    app.run()
+#    Database_setup("C://sqlite/db/chatbot_v2.db")
+    app.run()
