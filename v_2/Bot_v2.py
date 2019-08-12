@@ -41,7 +41,7 @@ def receive_message():
                 if message.get('message'):
                     recipient_id = message['sender']['id']
                     if message['message'].get('text'):
-                        response_sent_text = get_message(message['message']['text'])
+                        response_sent_text = get_message(message)
                         send_message(recipient_id,response_sent_text)
                         
                         if message['message'].get('attachments'):
@@ -61,9 +61,11 @@ def send_message(recipient_id, response):
     bot.send_text_message(recipient_id, response)
     return "success"
 
-def get_message(user_input):
+def get_message(message):
+    user_input = message['message']['text']
     inputtype = Classification(user_input)
-    
+    if(lang_check(message)):
+        return "Sorry, I don't understand other languages than English yet.. :("
 #    sample_responses = ["You are stunning!", "We're proud of you.", "Keep on being you!", "We're greatful to know you :)"]
     out = get_response(user_input)
     # return selected item to the user
@@ -75,7 +77,7 @@ def get_message(user_input):
 pairs = [
     [
         r"my name is (.*)",
-        ["Hello {}, How are you today {} ?",]
+        ["Hello {}!"," How are you today {} ?",]
     ],
      [
         r"what is your name ?",
@@ -124,11 +126,11 @@ pairs = [
         ["Tim Honks"]
 ],
     [
-        r"quit",
+        r"bye",
         ["BBye take care. See you soon :) ","It was nice talking to you. See you soon :)"]
 ],
         [
-        r"hi|hey|hello|sup|what's up|",
+        r"hi|hey|hello|sup|what's up",
         ["Hello", "Hey there",]
     ],
 ]
@@ -142,12 +144,20 @@ def Classification(text):
     S = Statement
     Q = Question
     """
-    
+def lang_check(mess):
+    if(mess["message"]["nlp"]["detected_locales"][0]["locale"]!= "en_XX"):
+        return True
+    return False
+       
 def get_response(text):
+    
+    text = text.lower()
     for pair in pairs:
         if(re.search(pair[0],text)):
-            if(pair==pairs[0]):                
-                return random.choice(pair[1]).format("Your_name")
+            if(pair==pairs[0]):      
+                s = "name is"
+                name = text[text.index(s)+len(s):].split()[0]
+                return random.choice(pair[1]).format(name)
             return random.choice(pair[1])
     
     return "Sorry I don't understand :("
