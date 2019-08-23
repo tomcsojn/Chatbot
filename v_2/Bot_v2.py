@@ -64,9 +64,7 @@ def send_message(recipient_id, response):
 def get_message(message):
     user_input = message['message']['text']
     inputtype = Classification(user_input)
-    if(lang_check(message)):
-        return "Sorry, I don't understand other languages than English yet.. :("
-#    sample_responses = ["You are stunning!", "We're proud of you.", "Keep on being you!", "We're greatful to know you :)"]
+
     out = get_response(user_input)
     # return selected item to the user
 #    return random.choice(sample_responses)
@@ -144,26 +142,31 @@ def Classification(text):
     S = Statement
     Q = Question
     """
+
+       
+def get_response(text):
+    text = text.lower()
+    out = check_chat(text)
+    return out
+    
+#%%Chatting    
+def check_chat(mess):
+
+    for pair in pairs:
+        if(re.search(pair[0],mess)):
+            if(pair==pairs[0]):      
+                s = "name is"
+                name = mess[mess.index(s)+len(s):].split()[0]
+                return random.choice(pair[1]).format(name)
+            return random.choice(pair[1])
+    if(lang_check(mess)):
+        return "Sorry, I don't understand other languages than English yet.. :("
+    return "Sorry I don't understand :("    
+        
 def lang_check(mess):
     if(mess["message"]["nlp"]["detected_locales"][0]["locale"]!= "en_XX"):
         return True
     return False
-       
-def get_response(text):
-    
-    text = text.lower()
-    for pair in pairs:
-        if(re.search(pair[0],text)):
-            if(pair==pairs[0]):      
-                s = "name is"
-                name = text[text.index(s)+len(s):].split()[0]
-                return random.choice(pair[1]).format(name)
-            return random.choice(pair[1])
-    
-    return "Sorry I don't understand :("
-    
-    
-
 
 #%%Database
 import sqlite3
