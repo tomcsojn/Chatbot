@@ -54,8 +54,8 @@ def receive_message():
                 if message.get('message'):
                     recipient_id = message['sender']['id']
                     if message['message'].get('text'):
-                        response_sent_text = get_message(message)
-                        send_message(recipient_id,response_sent_text)
+                        response_sent_text,istext = get_message(message)
+                        send_message(recipient_id,response_sent_text,istext)
                         
                         if message['message'].get('attachments'):
                             response_sent_nontext=get_message()
@@ -69,9 +69,12 @@ def verify_fb_token(token_sent):
         return request.args.get("hub.challenge")
     return 'Invalid verification token'
 
-def send_message(recipient_id, response):
+def send_message(recipient_id, response,istext):
     #sends user the text message provided via input response parameter
-    bot.send_text_message(recipient_id, response)
+    if(istext):
+        bot.send_text_message(recipient_id, response)
+    else:
+        bot.send_image_url(recipient_id, response)
     return "success"
 
 def get_message(message):
@@ -144,10 +147,10 @@ pairs = [
         r"who (.*) (moviestar|actor)?",
         ["Tim Honks"]
 ],
-    [
-        r"bye",
-        ["BBye take care. See you soon :) ","It was nice talking to you. See you soon :)"]
-],
+#    [
+#        r"bye",
+#        ["BBye take care. See you soon :) ","It was nice talking to you. See you soon :)"]
+#],
 #        [
 #        r"hi|hey|hello|sup|what's up",
 #        ["Hello", "Hey there",]
@@ -168,12 +171,17 @@ def Classification(text):
 def get_response(mess):
     text = mess['text']
     fast_check = check_chat(mess)
+    istext = True
     if(not fast_check):       
         watson_response = call_watson(text)
-        out = watson_response['output']['text'][0]
+        if(watson_response['output']['generic'][0]['response_type']=='text'):
+            out = watson_response['output']['text'][0]
+        else:#in case of returning image
+            istext = False
+            out = watson_response['output']['generic'][0]['source']
     else:
         out = fast_check
-    return out
+    return out,istext
     
 #%%Chatting    
 def check_chat(mess):
