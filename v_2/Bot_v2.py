@@ -19,10 +19,23 @@ os.chdir(script_dir)
 sys.path.append("../Keys/")
 import Keys
 
+import json
+import ibm_watson
+
+
+
+
 ACCESS_TOKEN = Keys.ACCESS_TOKEN
 VERIFY_TOKEN = Keys.VERIFY_TOKEN
+WATSON_API = Keys.WATSON_API
 bot = Bot(ACCESS_TOKEN)
 
+
+
+watson = ibm_watson.AssistantV1(
+        version='2019-02-28',
+        iam_apikey=WATSON_API,
+        url='https://gateway-fra.watsonplatform.net/assistant/api')
 
 
 #%% Webhook
@@ -62,7 +75,7 @@ def send_message(recipient_id, response):
     return "success"
 
 def get_message(message):
-    user_input = message['message']['text']
+    user_input = message['message']
     inputtype = Classification(user_input)
 
     out = get_response(user_input)
@@ -70,7 +83,15 @@ def get_message(message):
 #    return random.choice(sample_responses)
     return out
 
-
+#%%Watson
+def call_watson(text):
+    response = watson.message(
+    workspace_id='88270842-4fe5-4f0b-8304-1d45b89a292f',
+    input={
+        'text': text
+    }).get_result() 
+    return response
+    
 #%%Pairs
 pairs = [
     [
@@ -94,7 +115,7 @@ pairs = [
         ["Nice to hear that","Alright :)",]
     ],
     [
-        r"(.*) age?",
+        r"(.*) age?|(.*) old are you?",
         ["I'm a computer program dude\nSeriously you are asking me this?",]
         
     ],
@@ -127,10 +148,10 @@ pairs = [
         r"bye",
         ["BBye take care. See you soon :) ","It was nice talking to you. See you soon :)"]
 ],
-        [
-        r"hi|hey|hello|sup|what's up",
-        ["Hello", "Hey there",]
-    ],
+#        [
+#        r"hi|hey|hello|sup|what's up",
+#        ["Hello", "Hey there",]
+#    ],
 ]
 
 #%%Input Classification
@@ -144,28 +165,34 @@ def Classification(text):
     """
 
        
-def get_response(text):
-    text = text.lower()
-    out = check_chat(text)
+def get_response(mess):
+    text = mess['text']
+    fast_check = check_chat(mess)
+    if(not fast_check):       
+        watson_response = call_watson(text)
+        out = watson_response['output']['text'][0]
+    else:
+        out = fast_check
     return out
     
 #%%Chatting    
 def check_chat(mess):
-
+    text = mess['text']
     for pair in pairs:
-        if(re.search(pair[0],mess)):
+        if(re.search(pair[0],text.lower())):
             if(pair==pairs[0]):      
                 s = "name is"
-                name = mess[mess.index(s)+len(s):].split()[0]
+                name = text[text.index(s)+len(s):].split()[0]
                 return random.choice(pair[1]).format(name)
             return random.choice(pair[1])
     if(lang_check(mess)):
         return "Sorry, I don't understand other languages than English yet.. :("
-    return "Sorry I don't understand :("    
+    return False    
         
 def lang_check(mess):
-    if(mess["message"]["nlp"]["detected_locales"][0]["locale"]!= "en_XX"):
-        return True
+    if(len(mess["nlp"]["detected_locales"])>0):
+        if(mess["nlp"]["detected_locales"][0]["locale"]!= "en_XX"):
+            return True
     return False
 
 #%%Database
