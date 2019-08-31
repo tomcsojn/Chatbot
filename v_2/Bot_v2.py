@@ -54,11 +54,11 @@ def receive_message():
                 if message.get('message'):
                     recipient_id = message['sender']['id']
                     if message['message'].get('text'):
-                        response_sent_text,istext = get_message(message)
-                        send_message(recipient_id,response_sent_text,istext)
+                        response_sent_text,response_type = get_response(message)
+                        send_message(recipient_id,response_sent_text,response_type)
                         
-                        if message['message'].get('attachments'):
-                            response_sent_nontext=get_message()
+                        if message['message'].get('attachments'):#non text message
+                            response_sent_nontext=get_response()
                             send_message(recipient_id, response_sent_nontext)
     return "Message Processed"
 
@@ -71,21 +71,28 @@ def verify_fb_token(token_sent):
 
 def send_message(recipient_id, response,istext):
     #sends user the text message provided via input response parameter
+    
+    
     if(istext):
         bot.send_text_message(recipient_id, response)
     else:
         bot.send_image_url(recipient_id, response)
     return "success"
-
-def get_message(message):
-    user_input = message['message']
-    inputtype = Classification(user_input)
-
-    out = get_response(user_input)
-    # return selected item to the user
-#    return random.choice(sample_responses)
-    return out
-
+def get_response(mess):
+    mess = mess['message']
+    text = mess['text']
+    fast_check = check_chat(mess)
+    response_type = 'text'
+    if(not fast_check):       
+        watson_response = call_watson(text)
+        if(watson_response['output']['generic'][0]['response_type']=='text'):
+            out = watson_response['output']['text'][0]
+        elif(watson_response['output']['generic'][0]['response_type']=='image'):#in case of returning image
+            response_type = 'image'
+            out = watson_response['output']['generic'][0]['source']
+    else:
+        out = fast_check
+    return out,response_type
 #%%Watson
 def call_watson(text):
     response = watson.message(
@@ -157,32 +164,7 @@ pairs = [
 #    ],
 ]
 
-#%%Input Classification
-def Classification(text):
-    """
-    S = Salute
-    C = Chat
-    B = Bye
-    S = Statement
-    Q = Question
-    """
 
-       
-def get_response(mess):
-    text = mess['text']
-    fast_check = check_chat(mess)
-    istext = True
-    if(not fast_check):       
-        watson_response = call_watson(text)
-        if(watson_response['output']['generic'][0]['response_type']=='text'):
-            out = watson_response['output']['text'][0]
-        else:#in case of returning image
-            istext = False
-            out = watson_response['output']['generic'][0]['source']
-    else:
-        out = fast_check
-    return out,istext
-    
 #%%Chatting    
 def check_chat(mess):
     text = mess['text']
