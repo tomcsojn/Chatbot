@@ -69,13 +69,13 @@ def verify_fb_token(token_sent):
         return request.args.get("hub.challenge")
     return 'Invalid verification token'
 
-def send_message(recipient_id, response,istext):
+def send_message(recipient_id, response,response_type):
     #sends user the text message provided via input response parameter
     
     
-    if(istext):
+    if(response_type == "text"):
         bot.send_text_message(recipient_id, response)
-    else:
+    elif(response_type == "image"):
         bot.send_image_url(recipient_id, response)
     return "success"
 def get_response(mess):
@@ -83,7 +83,8 @@ def get_response(mess):
     text = mess['text']
     fast_check = check_chat(mess)
     response_type = 'text'
-    if(not fast_check):       
+    if(not fast_check):      
+        global watson_response
         watson_response = call_watson(text)
         if(watson_response['output']['generic'][0]['response_type']=='text'):
             out = watson_response['output']['text'][0]
@@ -129,31 +130,31 @@ pairs = [
         ["I'm a computer program dude\nSeriously you are asking me this?",]
         
     ],
-    [
-        r"what (.*) want ?",
-        ["Make me an offer I can't refuse",]
-        
-    ],
+#    [
+#        r"what (.*) want ?",
+#        ["Make me an offer I can't refuse",]
+#        
+#    ],
     [
         r"(.*) (location|city) ?",
         ['Copenhagen',]
     ],
-    [
-        r"how (.*) health(.*)",
-        ["I'm a computer program, so I'm always healthy ",]
-    ],
-    [
-        r"(.*) (sports|game) ?",
-        ["I'm a very big fan of Football",]
-    ],
-    [
-        r"who (.*) sportsperson ?",
-        ["Messy","Ronaldo","Roony"]
-],
-    [
-        r"who (.*) (moviestar|actor)?",
-        ["Tim Honks"]
-],
+#    [
+#        r"how (.*) health(.*)",
+#        ["I'm a computer program, so I'm always healthy ",]
+#    ],
+#    [
+#        r"(.*) (sports|game) ?",
+#        ["I'm a very big fan of Football",]
+#    ],
+#    [
+#        r"who (.*) sportsperson ?",
+#        ["Messy","Ronaldo","Roony"]
+#],
+#    [
+#        r"who (.*) (moviestar|actor)?",
+#        ["Tim Honks"]
+#],
 #    [
 #        r"bye",
 #        ["BBye take care. See you soon :) ","It was nice talking to you. See you soon :)"]
