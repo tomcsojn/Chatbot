@@ -83,8 +83,7 @@ def get_response(mess):
     text = mess['text']
     fast_check = check_chat(mess)
     response_type = 'text'
-    if(not fast_check):      
-        global watson_response
+    if(not fast_check):
         watson_response = call_watson(text)
         if(watson_response['output']['generic'][0]['response_type']=='text'):
             out = watson_response['output']['text'][0]
@@ -109,22 +108,22 @@ pairs = [
         r"my name is (.*)",
         ["Hello {}!"," How are you today {} ?",]
     ],
-     [
-        r"what is your name ?",
-        ["My name is Chatty and I'm a chatbot ?",]
-    ],
+#     [
+#        r"what is your name ?",
+#        ["My name is Chatty and I'm a chatbot ?",]
+#    ],
     [
         r"how are you ?",
         ["I'm doing good\nHow about You ?",]
     ],
-    [
-        r"sorry (.*)",
-        ["Its alright","Its OK, never mind",]
-    ],
-    [
-        r"i'm (.*) doing good",
-        ["Nice to hear that","Alright :)",]
-    ],
+#    [
+#        r"sorry (.*)",
+#        ["Its alright","Its OK, never mind",]
+#    ],
+#    [
+#        r"i'm (.*) doing good",
+#        ["Nice to hear that","Alright :)",]
+#    ],
     [
         r"(.*) age?|(.*) old are you?",
         ["I'm a computer program dude\nSeriously you are asking me this?",]
@@ -135,10 +134,10 @@ pairs = [
 #        ["Make me an offer I can't refuse",]
 #        
 #    ],
-    [
-        r"(.*) (location|city) ?",
-        ['Copenhagen',]
-    ],
+#    [
+#        r"(.*) (location|city) ?",
+#        ['Copenhagen',]
+#    ],
 #    [
 #        r"how (.*) health(.*)",
 #        ["I'm a computer program, so I'm always healthy ",]
